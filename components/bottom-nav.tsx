@@ -21,6 +21,7 @@ export function BottomNav() {
 
       <Link
         href="/quotes/new"
+        aria-label="New Quote"
         className="-mt-3.5 flex flex-col items-center gap-0.5 px-3.5 py-1"
       >
         <span className="flex size-11 items-center justify-center rounded-full bg-primary shadow-[0_6px_16px_oklch(52%_0.14_152_/_0.3)]">

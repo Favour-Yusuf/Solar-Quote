@@ -51,6 +51,7 @@ export function CompanyStep({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
+          aria-label="Upload company logo"
           className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-[1.5px] border-dashed border-border text-[10.5px] text-muted-foreground"
         >
           {logoUploading ? (
