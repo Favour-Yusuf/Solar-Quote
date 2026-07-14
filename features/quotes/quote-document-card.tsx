@@ -1,7 +1,9 @@
 import type { Company, Customer, Quote, QuoteItem, QuoteStatus } from "@prisma/client";
 import { StatusPill } from "@/components/status-pill";
+import { CompanyLogo } from "@/components/company-logo";
 import { formatCurrency, formatShortDate } from "@/utils/format";
 import { quoteTotalCents, depositCentsFor } from "@/utils/quote-math";
+import { DEFAULT_BRAND_COLOR } from "@/lib/branding";
 
 type QuoteWithRelations = Quote & {
   items: QuoteItem[];
@@ -19,31 +21,24 @@ export function QuoteDocumentCard({
 }) {
   const subtotalCents = quoteTotalCents(quote);
   const depositCents = depositCentsFor(subtotalCents, quote.depositPercent);
+  const accent = company.brandColor || DEFAULT_BRAND_COLOR;
 
   return (
     <div className="rounded-[22px] border border-border bg-white p-8 text-[oklch(21%_0.02_90)] shadow-[0_1px_2px_oklch(20%_0.02_90_/_0.04),0_20px_50px_oklch(20%_0.02_90_/_0.06)] sm:p-12">
       <div className="mb-9 flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex size-[38px] shrink-0 items-center justify-center rounded-[11px] bg-primary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 3v4M12 17v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M3 12h4M17 12h4M4.2 19.8l2.8-2.8M17 7l2.8-2.8"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-              <circle cx="12" cy="12" r="3.5" fill="white" />
-            </svg>
-          </div>
+          <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={38} />
           <div>
             <div className="font-heading text-lg font-extrabold">{company.name}</div>
             <div className="text-[12.5px] text-muted-foreground">
-              {[company.email, company.phone].filter(Boolean).join(" · ")}
+              {[company.email, company.phone, company.website].filter(Boolean).join(" · ")}
             </div>
           </div>
         </div>
         <div className="text-right">
-          <div className="font-heading text-[22px] font-extrabold text-primary">QUOTE</div>
+          <div className="font-heading text-[22px] font-extrabold" style={{ color: accent }}>
+            QUOTE
+          </div>
           <div className="text-[13px] text-muted-foreground">
             Q-{quote.number} · {formatShortDate(quote.createdAt)}
           </div>
@@ -99,7 +94,7 @@ export function QuoteDocumentCard({
             <span>Total</span>
             <span>{formatCurrency(subtotalCents)}</span>
           </div>
-          <div className="flex justify-between py-1.5 text-[13.5px] font-semibold text-terracotta-foreground">
+          <div className="flex justify-between py-1.5 text-[13.5px] font-semibold" style={{ color: accent }}>
             <span>Deposit due ({quote.depositPercent}%)</span>
             <span>{formatCurrency(depositCents)}</span>
           </div>
@@ -112,12 +107,36 @@ export function QuoteDocumentCard({
         </div>
       ) : null}
 
+      {company.bankName || company.accountName || company.accountNumber ? (
+        <div className="mb-6 rounded-xl border border-border px-4.5 py-4">
+          <div className="mb-2.5 text-xs font-bold uppercase tracking-wide text-muted-foreground/80">
+            Payment Details
+          </div>
+          <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 text-[13.5px] sm:grid-cols-3">
+            {company.accountName ? (
+              <div>
+                <div className="text-muted-foreground">Account Name</div>
+                <div className="font-semibold">{company.accountName}</div>
+              </div>
+            ) : null}
+            {company.bankName ? (
+              <div>
+                <div className="text-muted-foreground">Bank</div>
+                <div className="font-semibold">{company.bankName}</div>
+              </div>
+            ) : null}
+            {company.accountNumber ? (
+              <div>
+                <div className="text-muted-foreground">Account Number</div>
+                <div className="font-semibold">{company.accountNumber}</div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       <div className="border-t border-border pt-5 text-[12.5px] text-muted-foreground">
-        {company.bankName || company.accountNumber
-          ? `Payment to: ${company.name}${company.bankName ? ` · ${company.bankName}` : ""}${
-              company.accountNumber ? ` · Account ending ${company.accountNumber.slice(-4)}` : ""
-            } — this quote is valid for 30 days.`
-          : "This quote is valid for 30 days."}
+        This quote is valid for 30 days.
       </div>
     </div>
   );

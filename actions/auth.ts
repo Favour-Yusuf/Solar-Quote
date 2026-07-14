@@ -13,7 +13,9 @@ import { upsertUser } from "@/services/users";
 
 export type ActionResult = { error: string } | { success: true };
 
-export async function signInAction(input: unknown): Promise<ActionResult> {
+export type SignInResult = ActionResult | { error: string; unconfirmedEmail: string };
+
+export async function signInAction(input: unknown): Promise<SignInResult> {
   const parsed = loginSchema.safeParse(input);
   if (!parsed.success) {
     return { error: "Enter a valid email and password." };
@@ -22,6 +24,12 @@ export async function signInAction(input: unknown): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
+    if (error.code === "email_not_confirmed") {
+      return {
+        error: "Confirm your email address before logging in.",
+        unconfirmedEmail: parsed.data.email,
+      };
+    }
     return { error: error.message };
   }
 
@@ -51,7 +59,20 @@ export async function signUpAction(input: unknown): Promise<ActionResult> {
   await upsertUser({ id: data.user.id, email, fullName });
   await createCompany({ ownerId: data.user.id, name: companyName });
 
+  if (!data.session) {
+    redirect(`/verify-email?email=${encodeURIComponent(email)}`);
+  }
+
   redirect("/onboarding");
+}
+
+export async function resendVerificationEmailAction(email: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resend({ type: "signup", email });
+  if (error) {
+    return { error: error.message };
+  }
+  return { success: true };
 }
 
 export async function requestPasswordResetAction(input: unknown): Promise<ActionResult> {

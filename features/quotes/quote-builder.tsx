@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Customer, Product } from "@prisma/client";
 import { createQuoteAction } from "@/actions/quotes";
+import { AddCustomerModal } from "@/features/customers/add-customer-modal";
 import { CustomerPicker } from "@/features/quotes/customer-picker";
 import { ProductPicker, type QuoteLineItem } from "@/features/quotes/product-picker";
 import {
@@ -19,12 +20,14 @@ export function QuoteBuilder({
   products: Product[];
   initialCustomerId?: string;
 }) {
+  const [customerList, setCustomerList] = useState(customers);
   const [customerId, setCustomerId] = useState<string | null>(
     initialCustomerId && customers.some((c) => c.id === initialCustomerId)
       ? initialCustomerId
       : null
   );
   const [customerSearch, setCustomerSearch] = useState("");
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [productSearch, setProductSearch] = useState("");
   const [lineItems, setLineItems] = useState<QuoteLineItem[]>([]);
   const [depositPercent, setDepositPercent] = useState(50);
@@ -32,19 +35,25 @@ export function QuoteBuilder({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const selectedCustomer = customers.find((c) => c.id === customerId) ?? null;
+  const selectedCustomer = customerList.find((c) => c.id === customerId) ?? null;
 
   const customerResults = useMemo(() => {
     const query = customerSearch.trim().toLowerCase();
     const pool = query
-      ? customers.filter(
+      ? customerList.filter(
           (c) =>
             c.name.toLowerCase().includes(query) ||
             c.businessName?.toLowerCase().includes(query)
         )
-      : customers;
+      : customerList;
     return pool.slice(0, 5);
-  }, [customers, customerSearch]);
+  }, [customerList, customerSearch]);
+
+  function handleCustomerCreated(customer: Customer) {
+    setCustomerList((prev) => [customer, ...prev]);
+    setCustomerId(customer.id);
+    setCustomerSearch("");
+  }
 
   const productResults = useMemo(() => {
     const query = productSearch.trim().toLowerCase();
@@ -116,6 +125,13 @@ export function QuoteBuilder({
           results={customerResults}
           onSelect={(c) => setCustomerId(c.id)}
           onClear={() => setCustomerId(null)}
+          onAddNew={() => setShowAddCustomer(true)}
+        />
+        <AddCustomerModal
+          open={showAddCustomer}
+          onOpenChange={setShowAddCustomer}
+          defaultName={customerSearch}
+          onCreated={handleCustomerCreated}
         />
         <ProductPicker
           search={productSearch}

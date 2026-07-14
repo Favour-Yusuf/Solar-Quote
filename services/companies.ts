@@ -16,8 +16,10 @@ export async function completeOnboarding(
     companyName: string;
     phone?: string;
     email?: string;
+    website?: string;
     address?: string;
     logoUrl?: string;
+    brandColor?: string;
     bankName?: string;
     accountName?: string;
     accountNumber?: string;
@@ -30,8 +32,10 @@ export async function completeOnboarding(
       name: input.companyName,
       phone: input.phone || null,
       email: input.email || null,
+      website: input.website || null,
       address: input.address || null,
       logoUrl: input.logoUrl || null,
+      brandColor: input.brandColor || null,
       bankName: input.bankName || null,
       accountName: input.accountName || null,
       accountNumber: input.accountNumber || null,
@@ -51,4 +55,36 @@ export async function completeOnboarding(
   }
 
   return company;
+}
+
+export function updateCompany(
+  ownerId: string,
+  input: {
+    name: string;
+    phone?: string;
+    email?: string;
+    website?: string;
+    address?: string;
+    logoUrl?: string;
+    brandColor?: string;
+    bankName?: string;
+    accountName?: string;
+    accountNumber?: string;
+  }
+) {
+  return prisma.company.update({
+    where: { ownerId },
+    data: {
+      name: input.name,
+      phone: input.phone || null,
+      email: input.email || null,
+      website: input.website || null,
+      address: input.address || null,
+      logoUrl: input.logoUrl || null,
+      brandColor: input.brandColor || null,
+      bankName: input.bankName || null,
+      accountName: input.accountName || null,
+      accountNumber: input.accountNumber || null,
+    },
+  });
 }

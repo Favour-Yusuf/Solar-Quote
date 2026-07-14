@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { Customer } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,16 +24,34 @@ import {
   type CreateCustomerInput,
 } from "@/lib/validations/customers";
 
-export function AddCustomerModal() {
+export function AddCustomerModal({
+  defaultName,
+  open: openProp,
+  onOpenChange,
+  onCreated,
+}: {
+  defaultName?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onCreated?: (customer: Customer) => void;
+} = {}) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const open = isControlled ? openProp : uncontrolledOpen;
+  const setOpen = onOpenChange ?? setUncontrolledOpen;
   const [formError, setFormError] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreateCustomerInput>({ resolver: zodResolver(createCustomerSchema) });
+
+  useEffect(() => {
+    if (open && defaultName) setValue("name", defaultName);
+  }, [open, defaultName, setValue]);
 
   async function onSubmit(data: CreateCustomerInput) {
     setFormError(null);
@@ -42,19 +62,26 @@ export function AddCustomerModal() {
     }
     reset();
     setOpen(false);
-    router.refresh();
+    toast.success("Customer added.");
+    if (onCreated) {
+      onCreated(result.customer);
+    } else {
+      router.refresh();
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        render={
-          <Button className="h-auto gap-2 rounded-xl px-4 py-2.5 font-heading text-sm font-bold" />
-        }
-      >
-        <Plus className="size-[15px]" strokeWidth={2.4} />
-        Add Customer
-      </DialogTrigger>
+      {isControlled ? null : (
+        <DialogTrigger
+          render={
+            <Button className="h-auto gap-2 rounded-xl px-4 py-2.5 font-heading text-sm font-bold" />
+          }
+        >
+          <Plus className="size-[15px]" strokeWidth={2.4} />
+          Add Customer
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-[440px] rounded-[20px] p-7 sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle className="font-heading text-[19px] font-extrabold">

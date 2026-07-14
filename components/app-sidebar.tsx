@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus } from "lucide-react";
+import { ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { NAV_ITEMS } from "@/components/nav-items";
+import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
 import { getInitials } from "@/utils/format";
 
@@ -62,18 +63,23 @@ export function AppSidebar({
         })}
       </nav>
 
-      <div className="mt-auto flex items-center gap-2.5 border-t border-border px-2.5 pt-3">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-terracotta font-heading text-[13px] font-bold text-terracotta-foreground">
-          {getInitials(userName)}
-        </div>
-        <div className="min-w-0">
-          <div className="truncate text-[13.5px] font-semibold leading-tight">
-            {userName}
+      <div className="mt-auto border-t border-border pt-3">
+        <UserMenu side="top" align="start">
+          <div className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left hover:bg-muted">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-terracotta font-heading text-[13px] font-bold text-terracotta-foreground">
+              {getInitials(userName)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[13.5px] font-semibold leading-tight">
+                {userName}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">
+                {companyName}
+              </div>
+            </div>
+            <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" strokeWidth={2.2} />
           </div>
-          <div className="truncate text-xs text-muted-foreground">
-            {companyName}
-          </div>
-        </div>
+        </UserMenu>
       </div>
     </aside>
   );

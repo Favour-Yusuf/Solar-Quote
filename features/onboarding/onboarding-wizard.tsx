@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { completeOnboardingAction } from "@/actions/onboarding";
-import { createClient } from "@/lib/supabase/client";
+import { useLogoUpload } from "@/lib/hooks/use-logo-upload";
 import { OnboardingShell } from "@/features/onboarding/onboarding-shell";
 import { WelcomeStep } from "@/features/onboarding/steps/welcome-step";
 import { CompanyStep } from "@/features/onboarding/steps/company-step";
@@ -23,9 +23,11 @@ export function OnboardingWizard({
   const [companyName, setCompanyName] = useState(initialCompanyName);
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [website, setWebsite] = useState("");
   const [address, setAddress] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | undefined>();
-  const [logoUploading, setLogoUploading] = useState(false);
+  const { upload: uploadLogo, uploading: logoUploading } = useLogoUpload(userId);
+  const [brandColor, setBrandColor] = useState("");
   const [productKeys, setProductKeys] = useState<Set<string>>(new Set());
   const [bankName, setBankName] = useState("");
   const [accountName, setAccountName] = useState("");
@@ -43,21 +45,8 @@ export function OnboardingWizard({
   }
 
   async function handleLogoSelect(file: File) {
-    setLogoUploading(true);
-    try {
-      const supabase = createClient();
-      const ext = file.name.split(".").pop() ?? "png";
-      const path = `${userId}/logo-${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from("logos")
-        .upload(path, file, { upsert: true });
-      if (!uploadError) {
-        const { data } = supabase.storage.from("logos").getPublicUrl(path);
-        setLogoUrl(data.publicUrl);
-      }
-    } finally {
-      setLogoUploading(false);
-    }
+    const url = await uploadLogo(file);
+    if (url) setLogoUrl(url);
   }
 
   async function finish() {
@@ -67,8 +56,10 @@ export function OnboardingWizard({
       companyName,
       phone,
       email,
+      website,
       address,
       logoUrl,
+      brandColor,
       productKeys: Array.from(productKeys),
       bankName,
       accountName,
@@ -91,11 +82,15 @@ export function OnboardingWizard({
           onPhoneChange={setPhone}
           email={email}
           onEmailChange={setEmail}
+          website={website}
+          onWebsiteChange={setWebsite}
           address={address}
           onAddressChange={setAddress}
           logoUrl={logoUrl}
           logoUploading={logoUploading}
           onLogoSelect={handleLogoSelect}
+          brandColor={brandColor}
+          onBrandColorChange={setBrandColor}
           onBack={() => setStep(1)}
           onNext={() => setStep(3)}
         />

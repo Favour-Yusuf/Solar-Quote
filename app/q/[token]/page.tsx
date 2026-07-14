@@ -2,12 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Download } from "lucide-react";
-import { LogoMark } from "@/components/logo";
+import { CompanyLogo } from "@/components/company-logo";
 import { Button } from "@/components/ui/button";
 import { getQuoteByShareToken } from "@/services/quotes";
 import { QuoteDocumentCard } from "@/features/quotes/quote-document-card";
 
-export const metadata: Metadata = { title: "Your quote — SolarQuote" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  const quote = await getQuoteByShareToken(token);
+  return { title: quote ? `Quote from ${quote.company.name}` : "Quote not found" };
+}
 
 export default async function PublicQuotePage({
   params,
@@ -25,7 +33,12 @@ export default async function PublicQuotePage({
     <div className="min-h-screen bg-background px-6 py-10 sm:px-10">
       <div className="mx-auto max-w-225">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-          <LogoMark />
+          <div className="flex items-center gap-2.5">
+            <CompanyLogo logoUrl={quote.company.logoUrl} name={quote.company.name} size={34} />
+            <span className="font-heading text-[17px] font-extrabold tracking-tight">
+              {quote.company.name}
+            </span>
+          </div>
           <Button
             variant="outline"
             render={
@@ -40,12 +53,11 @@ export default async function PublicQuotePage({
 
         <QuoteDocumentCard quote={quote} company={quote.company} status={quote.status} />
 
-        <p className="mt-8 text-center text-[13px] text-muted-foreground">
+        <p className="mt-8 text-center text-[11.5px] text-muted-foreground/70">
           Quoted with{" "}
-          <Link href="/" className="font-semibold text-primary">
+          <Link href="/" className="font-medium text-muted-foreground">
             SolarQuote
-          </Link>{" "}
-          — branded quotes for solar installers.
+          </Link>
         </p>
       </div>
     </div>

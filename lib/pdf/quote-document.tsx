@@ -1,13 +1,16 @@
-import { Document, Page, View, Text, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import { quoteTotalCents, depositCentsFor } from "@/utils/quote-math";
 import { formatCurrency, formatShortDate } from "@/utils/format";
+import { DEFAULT_BRAND_COLOR } from "@/lib/branding";
 
 const styles = StyleSheet.create({
   page: { padding: 40, fontSize: 10, fontFamily: "Helvetica", color: "#212121" },
   headerRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 28 },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+  logo: { width: 36, height: 36, objectFit: "contain", borderRadius: 6 },
   companyName: { fontSize: 14, fontFamily: "Helvetica-Bold" },
   meta: { fontSize: 9, color: "#6b6b6b", marginTop: 2 },
-  quoteLabel: { fontSize: 16, fontFamily: "Helvetica-Bold", color: "#1c8a4c", textAlign: "right" },
+  quoteLabel: { fontSize: 16, fontFamily: "Helvetica-Bold", textAlign: "right" },
   section: { marginBottom: 20 },
   label: { fontSize: 8, textTransform: "uppercase", color: "#9a9a9a", marginBottom: 4 },
   customerName: { fontSize: 11, fontFamily: "Helvetica-Bold" },
@@ -31,6 +34,22 @@ const styles = StyleSheet.create({
   },
   bold: { fontFamily: "Helvetica-Bold" },
   notes: { marginBottom: 16, color: "#6b6b6b" },
+  paymentBlock: {
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 16,
+  },
+  paymentTitle: {
+    fontSize: 8,
+    textTransform: "uppercase",
+    color: "#9a9a9a",
+    marginBottom: 6,
+  },
+  paymentRow: { flexDirection: "row", gap: 24 },
+  paymentLabel: { fontSize: 8, color: "#9a9a9a" },
+  paymentValue: { fontSize: 10, fontFamily: "Helvetica-Bold", marginTop: 1 },
   footer: { borderTopWidth: 1, borderTopColor: "#e5e5e5", paddingTop: 12, fontSize: 8, color: "#9a9a9a" },
 });
 
@@ -47,26 +66,35 @@ export type PdfCompany = {
   name: string;
   email: string | null;
   phone: string | null;
+  website: string | null;
+  logoUrl: string | null;
+  brandColor: string | null;
   bankName: string | null;
+  accountName: string | null;
   accountNumber: string | null;
 };
 
 export function QuotePdfDocument({ quote, company }: { quote: PdfQuote; company: PdfCompany }) {
   const subtotalCents = quoteTotalCents(quote);
   const depositCents = depositCentsFor(subtotalCents, quote.depositPercent);
+  const accent = company.brandColor || DEFAULT_BRAND_COLOR;
 
   return (
     <Document title={`Quote Q-${quote.number}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.companyName}>{company.name}</Text>
-            <Text style={styles.meta}>
-              {[company.email, company.phone].filter(Boolean).join(" · ")}
-            </Text>
+          <View style={styles.headerLeft}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- @react-pdf/renderer's Image is not an HTML img */}
+            {company.logoUrl ? <Image src={company.logoUrl} style={styles.logo} /> : null}
+            <View>
+              <Text style={styles.companyName}>{company.name}</Text>
+              <Text style={styles.meta}>
+                {[company.email, company.phone, company.website].filter(Boolean).join(" · ")}
+              </Text>
+            </View>
           </View>
           <View>
-            <Text style={styles.quoteLabel}>QUOTE</Text>
+            <Text style={[styles.quoteLabel, { color: accent }]}>QUOTE</Text>
             <Text style={styles.meta}>
               Q-{quote.number} · {formatShortDate(quote.createdAt)}
             </Text>
@@ -109,20 +137,40 @@ export function QuotePdfDocument({ quote, company }: { quote: PdfQuote; company:
             <Text style={styles.bold}>{formatCurrency(subtotalCents)}</Text>
           </View>
           <View style={styles.totalsRow}>
-            <Text>Deposit due ({quote.depositPercent}%)</Text>
-            <Text>{formatCurrency(depositCents)}</Text>
+            <Text style={{ color: accent }}>Deposit due ({quote.depositPercent}%)</Text>
+            <Text style={{ color: accent }}>{formatCurrency(depositCents)}</Text>
           </View>
         </View>
 
         {quote.notes ? <Text style={styles.notes}>{quote.notes}</Text> : null}
 
-        <Text style={styles.footer}>
-          {company.bankName || company.accountNumber
-            ? `Payment to: ${company.name}${company.bankName ? ` · ${company.bankName}` : ""}${
-                company.accountNumber ? ` · Account ending ${company.accountNumber.slice(-4)}` : ""
-              } — this quote is valid for 30 days.`
-            : "This quote is valid for 30 days."}
-        </Text>
+        {company.bankName || company.accountName || company.accountNumber ? (
+          <View style={styles.paymentBlock}>
+            <Text style={styles.paymentTitle}>Payment Details</Text>
+            <View style={styles.paymentRow}>
+              {company.accountName ? (
+                <View>
+                  <Text style={styles.paymentLabel}>Account Name</Text>
+                  <Text style={styles.paymentValue}>{company.accountName}</Text>
+                </View>
+              ) : null}
+              {company.bankName ? (
+                <View>
+                  <Text style={styles.paymentLabel}>Bank</Text>
+                  <Text style={styles.paymentValue}>{company.bankName}</Text>
+                </View>
+              ) : null}
+              {company.accountNumber ? (
+                <View>
+                  <Text style={styles.paymentLabel}>Account Number</Text>
+                  <Text style={styles.paymentValue}>{company.accountNumber}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
+        <Text style={styles.footer}>This quote is valid for 30 days.</Text>
       </Page>
     </Document>
   );

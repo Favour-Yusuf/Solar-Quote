@@ -1,6 +1,7 @@
 "use client";
 
 import type { Customer } from "@prisma/client";
+import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getInitials } from "@/utils/format";
@@ -12,6 +13,7 @@ export function CustomerPicker({
   results,
   onSelect,
   onClear,
+  onAddNew,
 }: {
   selectedCustomer: Customer | null;
   search: string;
@@ -19,6 +21,7 @@ export function CustomerPicker({
   results: Customer[];
   onSelect: (customer: Customer) => void;
   onClear: () => void;
+  onAddNew: () => void;
 }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-[22px]">
@@ -55,9 +58,19 @@ export function CustomerPicker({
           />
           <div className="mt-2 max-h-[220px] overflow-auto rounded-xl">
             {results.length === 0 ? (
-              <p className="px-3 py-2 text-[13px] text-muted-foreground">
-                No customers found.
-              </p>
+              <div className="px-1 py-1.5">
+                <p className="px-2 pb-2 text-[13px] text-muted-foreground">
+                  No customers found.
+                </p>
+                <button
+                  type="button"
+                  onClick={onAddNew}
+                  className="flex w-full items-center gap-2 rounded-[10px] px-3 py-2.5 text-left text-[13.5px] font-semibold text-primary hover:bg-muted"
+                >
+                  <Plus className="size-[15px]" strokeWidth={2.4} />
+                  Add New Customer
+                </button>
+              </div>
             ) : (
               results.map((customer) => (
                 <button

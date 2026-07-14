@@ -1,8 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/quotes", "/customers", "/products", "/onboarding"];
-const AUTH_PAGES = ["/login", "/register", "/forgot-password"];
+const PROTECTED_PREFIXES = [
+  "/dashboard",
+  "/quotes",
+  "/customers",
+  "/products",
+  "/onboarding",
+  "/settings",
+];
+const AUTH_PAGES = ["/login", "/register", "/forgot-password", "/verify-email"];
 
 /**
  * Refreshes the Supabase session cookie on every request and gate-keeps

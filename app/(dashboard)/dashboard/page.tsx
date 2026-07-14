@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CompanyLogo } from "@/components/company-logo";
 import { requireOnboardedCompany } from "@/lib/session";
 import { getDashboardStats, getRecentQuotes } from "@/services/quotes";
 import { toQuoteListItem } from "@/features/quotes/quote-view";
@@ -24,14 +25,17 @@ export default async function DashboardPage() {
 
   return (
     <div className="animate-sq-fade-up">
-      <div className="mb-7 flex flex-wrap items-baseline justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-[26px] font-extrabold tracking-tight sm:text-[28px]">
-            {getGreeting(new Date(), firstName)}
-          </h1>
-          <p className="mt-1 text-[15px] text-muted-foreground">
-            Here&apos;s how quoting is going this month.
-          </p>
+      <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-3.5">
+          <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={44} />
+          <div>
+            <h1 className="font-heading text-[26px] font-extrabold tracking-tight sm:text-[28px]">
+              {getGreeting(new Date(), firstName)}
+            </h1>
+            <p className="mt-1 text-[15px] text-muted-foreground">
+              Here&apos;s how quoting is going this month.
+            </p>
+          </div>
         </div>
         <Button
           render={<Link href="/quotes/new" />}
