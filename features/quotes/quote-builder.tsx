@@ -13,11 +13,17 @@ import {
 export function QuoteBuilder({
   customers,
   products,
+  initialCustomerId,
 }: {
   customers: Customer[];
   products: Product[];
+  initialCustomerId?: string;
 }) {
-  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(
+    initialCustomerId && customers.some((c) => c.id === initialCustomerId)
+      ? initialCustomerId
+      : null
+  );
   const [customerSearch, setCustomerSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [lineItems, setLineItems] = useState<QuoteLineItem[]>([]);

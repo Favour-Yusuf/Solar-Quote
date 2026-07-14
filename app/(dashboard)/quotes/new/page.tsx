@@ -7,8 +7,13 @@ import { QuoteBuilder } from "@/features/quotes/quote-builder";
 
 export const metadata: Metadata = { title: "New Quote — SolarQuote" };
 
-export default async function NewQuotePage() {
+export default async function NewQuotePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ customerId?: string }>;
+}) {
   const { company } = await requireOnboardedCompany();
+  const { customerId } = await searchParams;
   const [customers, products] = await Promise.all([
     getCustomers(company.id),
     getProducts(company.id),
@@ -20,7 +25,11 @@ export default async function NewQuotePage() {
         title="New Quote"
         description="Fill in the details on the left — your totals update instantly on the right."
       />
-      <QuoteBuilder customers={customers} products={products} />
+      <QuoteBuilder
+        customers={customers}
+        products={products}
+        initialCustomerId={customerId}
+      />
     </div>
   );
 }
