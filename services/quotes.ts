@@ -1,8 +1,6 @@
 import { prisma } from "@/lib/prisma";
-
-export function quoteTotalCents(quote: { items: { priceCents: number; qty: number }[] }) {
-  return quote.items.reduce((sum, item) => sum + item.priceCents * item.qty, 0);
-}
+import type { QuoteStatus } from "@prisma/client";
+import { quoteTotalCents } from "@/utils/quote-math";
 
 export async function getDashboardStats(companyId: string) {
   const quotes = await prisma.quote.findMany({
@@ -28,4 +26,92 @@ export function getRecentQuotes(companyId: string, limit = 5) {
     orderBy: { createdAt: "desc" },
     take: limit,
   });
+}
+
+export function getAllQuotes(companyId: string) {
+  return prisma.quote.findMany({
+    where: { companyId },
+    include: { items: true, customer: true },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export function getQuoteById(id: string, companyId: string) {
+  return prisma.quote.findFirst({
+    where: { id, companyId },
+    include: { items: true, customer: true, company: true },
+  });
+}
+
+export function getQuoteByShareToken(shareToken: string) {
+  return prisma.quote.findUnique({
+    where: { shareToken },
+    include: { items: true, customer: true, company: true },
+  });
+}
+
+export async function createQuote(input: {
+  companyId: string;
+  customerId: string;
+  depositPercent: number;
+  notes?: string;
+  items: { productId: string; qty: number }[];
+}) {
+  return prisma.$transaction(async (tx) => {
+    // Atomic per-company counter: increment returns the post-increment
+    // value, so the number assigned to this quote is one less.
+    const company = await tx.company.update({
+      where: { id: input.companyId },
+      data: { quoteSequence: { increment: 1 } },
+    });
+    const number = company.quoteSequence - 1;
+
+    // Never trust client-supplied prices — snapshot from the authoritative
+    // product row at creation time.
+    const products = await tx.product.findMany({
+      where: {
+        companyId: input.companyId,
+        id: { in: input.items.map((item) => item.productId) },
+      },
+    });
+    const productById = new Map(products.map((p) => [p.id, p]));
+
+    const items = input.items.flatMap((item) => {
+      const product = productById.get(item.productId);
+      if (!product) return [];
+      return [
+        {
+          productId: product.id,
+          name: product.name,
+          unit: product.unit,
+          priceCents: product.priceCents,
+          qty: item.qty,
+        },
+      ];
+    });
+
+    return tx.quote.create({
+      data: {
+        companyId: input.companyId,
+        customerId: input.customerId,
+        number,
+        depositPercent: input.depositPercent,
+        notes: input.notes || null,
+        items: { create: items },
+      },
+      include: { items: true, customer: true },
+    });
+  });
+}
+
+export async function updateQuoteStatus(
+  id: string,
+  companyId: string,
+  status: QuoteStatus
+) {
+  const { count } = await prisma.quote.updateMany({
+    where: { id, companyId },
+    data: { status },
+  });
+  return count > 0;
 }

@@ -1,5 +1,5 @@
 import type { QuoteStatus } from "@prisma/client";
-import { quoteTotalCents } from "@/services/quotes";
+import { quoteTotalCents } from "@/utils/quote-math";
 import { formatCurrency, formatShortDate, getInitials } from "@/utils/format";
 
 type QuoteWithRelations = {
