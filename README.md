@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SolarQuote
 
-## Getting Started
+Branded solar quotes for installers — built with Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, Prisma, and Supabase (Auth, Postgres, Storage).
 
-First, run the development server:
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Connecting Supabase (required for auth/database features)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app runs with placeholder env values out of the box so UI-only work isn't blocked, but auth, quotes, customers, and products need a real Supabase project.
 
-## Learn More
+1. Create a project at [supabase.com/dashboard](https://supabase.com/dashboard).
+2. Copy `.env.local.example` to `.env.local` and fill in:
+   - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` — from **Project Settings → API**.
+   - `DATABASE_URL` (pooled, port 6543) and `DIRECT_URL` (direct, port 5432) — from **Project Settings → Database → Connection string**. Keep `?pgbouncer=true` on `DATABASE_URL`.
+3. Run the migration — this also creates the public `logos` Storage bucket and its access policies, so there's no separate manual Storage setup:
+   ```bash
+   npx prisma migrate deploy
+   npx prisma generate
+   ```
+4. In **Authentication → URL Configuration**, set the Site URL to `http://localhost:3000` (and your real domain later) so password-reset links redirect correctly.
 
-To learn more about Next.js, take a look at the following resources:
+## Tech stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Next.js 15+ App Router, TypeScript, Tailwind CSS v4, shadcn/ui (`base-nova`), Prisma ORM with the `@prisma/adapter-pg` driver adapter, Supabase (Auth/Postgres/Storage), React Hook Form + Zod, `@react-pdf/renderer`, React Email, date-fns.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project structure
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/` — routes only; pages stay thin and delegate to `features/*` and `actions/*`.
+- `components/` — shadcn primitives + shared chrome (sidebar, nav, status pill, empty states).
+- `features/<domain>/` — domain UI grouped by area (marketing, auth, onboarding, dashboard, quotes, customers, products).
+- `actions/<domain>.ts` — `"use server"` entry points: validate input, call `services/`, revalidate.
+- `services/<domain>.ts` — business logic + Prisma queries, framework-agnostic.
+- `lib/` — infra clients (Supabase browser/server/admin, Prisma, PDF templates).
+- `lib/validations/` — Zod schemas shared by forms and server actions.
+- `utils/` — pure helpers (currency/date formatting, initials).
+- `prisma/` — schema and migrations.

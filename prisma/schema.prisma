@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Mirrors the Supabase `auth.users` row for an installer who signs in.
+/// Prisma does not manage `auth.users` itself — this row is created by a
+/// server action right after Supabase Auth confirms sign-up.
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  fullName  String
+  createdAt DateTime @default(now())
+
+  company Company?
+
+  @@map("users")
+}
+
+model Company {
+  id        String  @id @default(cuid())
+  ownerId   String  @unique @db.Uuid
+  owner     User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  name          String
+  phone         String?
+  email         String?
+  address       String?
+  logoUrl       String?
+  bankName      String?
+  accountName   String?
+  accountNumber String?
+
+  /// Next quote display number to assign (e.g. 1000 -> "Q-1000"), incremented
+  /// transactionally by services/quotes.ts when a quote is created.
+  quoteSequence Int       @default(1000)
+  onboardedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customers Customer[]
+  products  Product[]
+  quotes    Quote[]
+
+  @@map("companies")
+}
+
+model Customer {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name         String
+  /// The customer's own business name, if any (distinct from `company` above,
+  /// which is the installer's account).
+  businessName String?
+  email        String?
+  phone        String?
+  address      String?
+
+  createdAt DateTime @default(now())
+
+  quotes Quote[]
+
+  @@index([companyId])
+  @@map("customers")
+}
+
+model Product {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name       String
+  unit       String
+  priceCents Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quoteItems QuoteItem[]
+
+  @@index([companyId])
+  @@map("products")
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  PAID
+}
+
+model Quote {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId String
+  customer  Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  /// Display number, rendered as "Q-{number}"; unique per company.
+  number         Int
+  depositPercent Int         @default(50)
+  notes          String?
+  status         QuoteStatus @default(DRAFT)
+  /// Public, unguessable id used by the no-auth /q/[shareToken] view and the
+  /// WhatsApp share link.
+  shareToken     String      @unique @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items QuoteItem[]
+
+  @@unique([companyId, number])
+  @@index([companyId])
+  @@index([customerId])
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id        String  @id @default(cuid())
+  quoteId   String
+  quote     Quote   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  /// Snapshot of the product at the time the quote was created, so editing
+  /// or deleting a product later never changes a historical quote.
+  name       String
+  unit       String
+  priceCents Int
+  qty        Int
+
+  @@index([quoteId])
+  @@map("quote_items")
+}
