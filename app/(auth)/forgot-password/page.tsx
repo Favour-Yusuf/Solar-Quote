@@ -1,0 +1,19 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { LogoMark } from "@/components/logo";
+import { ForgotPasswordForm } from "@/features/auth/forgot-password-form";
+
+export const metadata: Metadata = { title: "Reset your password — SolarQuote" };
+
+export default function ForgotPasswordPage() {
+  return (
+    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-[400px]">
+        <Link href="/" className="mb-8 flex justify-center">
+          <LogoMark />
+        </Link>
+        <ForgotPasswordForm />
+      </div>
+    </div>
+  );
+}
