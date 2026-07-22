@@ -20,7 +20,10 @@ export async function updateCompanyAction(input: unknown): Promise<ActionResult>
     return { error: parsed.error.issues[0]?.message ?? "Please check the form." };
   }
 
-  await updateCompany(user.id, parsed.data);
+  await updateCompany(user.id, {
+    ...parsed.data,
+    defaultValidityDays: Number(parsed.data.defaultValidityDays),
+  });
   revalidatePath("/settings");
   revalidatePath("/dashboard");
   return { success: true };

@@ -6,6 +6,7 @@ const PROTECTED_PREFIXES = [
   "/quotes",
   "/customers",
   "/products",
+  "/packages",
   "/onboarding",
   "/settings",
 ];

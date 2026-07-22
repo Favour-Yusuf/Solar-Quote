@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { isCurrencyCode } from "@/lib/currency";
+
+export const VALIDITY_DAY_OPTIONS = [7, 14, 30, 45, 60, 90] as const;
 
 export const companySettingsSchema = z.object({
   name: z.string().min(1, "Enter your company name."),
@@ -13,6 +16,17 @@ export const companySettingsSchema = z.object({
   bankName: z.string().optional(),
   accountName: z.string().optional(),
   accountNumber: z.string().optional(),
+  // Kept as plain strings so react-hook-form's field types stay simple; the
+  // action coerces defaultValidityDays to a number before persisting.
+  defaultCurrency: z
+    .string()
+    .refine((v): boolean => isCurrencyCode(v), "Choose a supported currency."),
+  defaultValidityDays: z
+    .string()
+    .refine(
+      (v) => (VALIDITY_DAY_OPTIONS as readonly number[]).includes(Number(v)),
+      "Choose a validity period."
+    ),
 });
 export type CompanySettingsInput = z.infer<typeof companySettingsSchema>;
 

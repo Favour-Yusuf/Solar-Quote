@@ -52,7 +52,7 @@ export default async function DashboardPage() {
         <StatCard label="Paid" value={String(stats.paidQuotes)} emphasis="paid" />
         <StatCard
           label="Revenue collected"
-          value={formatCurrency(stats.revenueCents)}
+          value={formatCurrency(stats.revenueCents, company.defaultCurrency)}
           emphasis="revenue"
         />
       </div>

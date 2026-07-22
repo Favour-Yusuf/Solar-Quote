@@ -1,6 +1,6 @@
 import { Document, Page, View, Text, Image, StyleSheet, renderToBuffer } from "@react-pdf/renderer";
 import { quoteTotalCents, depositCentsFor } from "@/utils/quote-math";
-import { formatCurrency, formatShortDate } from "@/utils/format";
+import { formatCurrency, formatShortDate, formatLongDate } from "@/utils/format";
 import { DEFAULT_BRAND_COLOR } from "@/lib/branding";
 
 const styles = StyleSheet.create({
@@ -12,8 +12,12 @@ const styles = StyleSheet.create({
   meta: { fontSize: 9, color: "#6b6b6b", marginTop: 2 },
   quoteLabel: { fontSize: 16, fontFamily: "Helvetica-Bold", textAlign: "right" },
   section: { marginBottom: 20 },
+  billRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20 },
   label: { fontSize: 8, textTransform: "uppercase", color: "#9a9a9a", marginBottom: 4 },
   customerName: { fontSize: 11, fontFamily: "Helvetica-Bold" },
+  metaCol: { alignItems: "flex-end" },
+  metaLine: { fontSize: 9, marginBottom: 2 },
+  metaLabelInline: { color: "#9a9a9a" },
   table: { borderWidth: 1, borderColor: "#e5e5e5", borderRadius: 4, marginBottom: 20 },
   tableHeaderRow: { flexDirection: "row", backgroundColor: "#f7f7f7", padding: 8 },
   tableHeaderCell: { fontFamily: "Helvetica-Bold" },
@@ -57,9 +61,17 @@ export type PdfQuote = {
   number: number;
   createdAt: Date;
   depositPercent: number;
+  currency: string;
+  validUntil: Date | null;
   notes: string | null;
   items: { name: string; unit: string; priceCents: number; qty: number }[];
-  customer: { name: string; businessName: string | null; address: string | null };
+  customer: {
+    name: string;
+    businessName: string | null;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+  };
 };
 
 export type PdfCompany = {
@@ -77,7 +89,9 @@ export type PdfCompany = {
 export function QuotePdfDocument({ quote, company }: { quote: PdfQuote; company: PdfCompany }) {
   const subtotalCents = quoteTotalCents(quote);
   const depositCents = depositCentsFor(subtotalCents, quote.depositPercent);
+  const balanceCents = subtotalCents - depositCents;
   const accent = company.brandColor || DEFAULT_BRAND_COLOR;
+  const currency = quote.currency;
 
   return (
     <Document title={`Quote Q-${quote.number}`}>
@@ -95,19 +109,37 @@ export function QuotePdfDocument({ quote, company }: { quote: PdfQuote; company:
           </View>
           <View>
             <Text style={[styles.quoteLabel, { color: accent }]}>QUOTE</Text>
-            <Text style={styles.meta}>
-              Q-{quote.number} · {formatShortDate(quote.createdAt)}
-            </Text>
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.label}>Prepared for</Text>
-          <Text style={styles.customerName}>{quote.customer.name}</Text>
-          {quote.customer.businessName ? (
-            <Text style={styles.meta}>{quote.customer.businessName}</Text>
-          ) : null}
-          {quote.customer.address ? <Text style={styles.meta}>{quote.customer.address}</Text> : null}
+        <View style={styles.billRow}>
+          <View>
+            <Text style={styles.label}>Bill To</Text>
+            <Text style={styles.customerName}>{quote.customer.name}</Text>
+            {quote.customer.businessName ? (
+              <Text style={styles.meta}>{quote.customer.businessName}</Text>
+            ) : null}
+            {quote.customer.phone ? <Text style={styles.meta}>{quote.customer.phone}</Text> : null}
+            {quote.customer.email ? <Text style={styles.meta}>{quote.customer.email}</Text> : null}
+            {quote.customer.address ? (
+              <Text style={styles.meta}>{quote.customer.address}</Text>
+            ) : null}
+          </View>
+          <View style={styles.metaCol}>
+            <Text style={styles.metaLine}>
+              <Text style={styles.metaLabelInline}>Quote No. </Text>Q-{quote.number}
+            </Text>
+            <Text style={styles.metaLine}>
+              <Text style={styles.metaLabelInline}>Issue Date: </Text>
+              {formatShortDate(quote.createdAt)}
+            </Text>
+            {quote.validUntil ? (
+              <Text style={styles.metaLine}>
+                <Text style={styles.metaLabelInline}>Valid Until: </Text>
+                {formatLongDate(quote.validUntil)}
+              </Text>
+            ) : null}
+          </View>
         </View>
 
         <View style={styles.table}>
@@ -121,8 +153,10 @@ export function QuotePdfDocument({ quote, company }: { quote: PdfQuote; company:
             <View key={i} style={styles.tableRow}>
               <Text style={styles.colItem}>{item.name}</Text>
               <Text style={styles.colQty}>{item.qty}</Text>
-              <Text style={styles.colPrice}>{formatCurrency(item.priceCents)}</Text>
-              <Text style={styles.colTotal}>{formatCurrency(item.priceCents * item.qty)}</Text>
+              <Text style={styles.colPrice}>{formatCurrency(item.priceCents, currency)}</Text>
+              <Text style={styles.colTotal}>
+                {formatCurrency(item.priceCents * item.qty, currency)}
+              </Text>
             </View>
           ))}
         </View>
@@ -130,15 +164,19 @@ export function QuotePdfDocument({ quote, company }: { quote: PdfQuote; company:
         <View style={styles.totalsBlock}>
           <View style={styles.totalsRow}>
             <Text>Subtotal</Text>
-            <Text>{formatCurrency(subtotalCents)}</Text>
+            <Text>{formatCurrency(subtotalCents, currency)}</Text>
           </View>
           <View style={styles.grandTotalRow}>
             <Text style={styles.bold}>Total</Text>
-            <Text style={styles.bold}>{formatCurrency(subtotalCents)}</Text>
+            <Text style={styles.bold}>{formatCurrency(subtotalCents, currency)}</Text>
           </View>
           <View style={styles.totalsRow}>
             <Text style={{ color: accent }}>Deposit due ({quote.depositPercent}%)</Text>
-            <Text style={{ color: accent }}>{formatCurrency(depositCents)}</Text>
+            <Text style={{ color: accent }}>{formatCurrency(depositCents, currency)}</Text>
+          </View>
+          <View style={styles.totalsRow}>
+            <Text>Balance</Text>
+            <Text>{formatCurrency(balanceCents, currency)}</Text>
           </View>
         </View>
 
@@ -170,7 +208,14 @@ export function QuotePdfDocument({ quote, company }: { quote: PdfQuote; company:
           </View>
         ) : null}
 
-        <Text style={styles.footer}>This quote is valid for 30 days.</Text>
+        <View style={[styles.footer, { flexDirection: "row", justifyContent: "space-between" }]}>
+          <Text>
+            {quote.validUntil
+              ? `This quotation is valid until ${formatLongDate(quote.validUntil)}.`
+              : "Thank you for your business."}
+          </Text>
+          <Text>Prepared by {company.name}</Text>
+        </View>
       </Page>
     </Document>
   );

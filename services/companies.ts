@@ -70,6 +70,8 @@ export function updateCompany(
     bankName?: string;
     accountName?: string;
     accountNumber?: string;
+    defaultCurrency?: string;
+    defaultValidityDays?: number;
   }
 ) {
   return prisma.company.update({
@@ -85,6 +87,8 @@ export function updateCompany(
       bankName: input.bankName || null,
       accountName: input.accountName || null,
       accountNumber: input.accountNumber || null,
+      ...(input.defaultCurrency ? { defaultCurrency: input.defaultCurrency } : {}),
+      ...(input.defaultValidityDays ? { defaultValidityDays: input.defaultValidityDays } : {}),
     },
   });
 }

@@ -1,7 +1,7 @@
 import type { Company, Customer, Quote, QuoteItem, QuoteStatus } from "@prisma/client";
 import { StatusPill } from "@/components/status-pill";
 import { CompanyLogo } from "@/components/company-logo";
-import { formatCurrency, formatShortDate } from "@/utils/format";
+import { formatCurrency, formatShortDate, formatLongDate } from "@/utils/format";
 import { quoteTotalCents, depositCentsFor } from "@/utils/quote-math";
 import { DEFAULT_BRAND_COLOR } from "@/lib/branding";
 
@@ -21,7 +21,9 @@ export function QuoteDocumentCard({
 }) {
   const subtotalCents = quoteTotalCents(quote);
   const depositCents = depositCentsFor(subtotalCents, quote.depositPercent);
+  const balanceCents = subtotalCents - depositCents;
   const accent = company.brandColor || DEFAULT_BRAND_COLOR;
+  const currency = quote.currency;
 
   return (
     <div className="rounded-[22px] border border-border bg-white p-8 text-[oklch(21%_0.02_90)] shadow-[0_1px_2px_oklch(20%_0.02_90_/_0.04),0_20px_50px_oklch(20%_0.02_90_/_0.06)] sm:p-12">
@@ -39,8 +41,8 @@ export function QuoteDocumentCard({
           <div className="font-heading text-[22px] font-extrabold" style={{ color: accent }}>
             QUOTE
           </div>
-          <div className="text-[13px] text-muted-foreground">
-            Q-{quote.number} · {formatShortDate(quote.createdAt)}
+          <div className="mt-0.5">
+            <StatusPill status={status} />
           </div>
         </div>
       </div>
@@ -48,18 +50,37 @@ export function QuoteDocumentCard({
       <div className="mb-8 flex flex-wrap justify-between gap-6">
         <div>
           <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground/80">
-            Prepared for
+            Bill To
           </div>
           <div className="text-[15.5px] font-bold">{quote.customer.name}</div>
           {quote.customer.businessName ? (
             <div className="text-[13.5px] text-muted-foreground">{quote.customer.businessName}</div>
           ) : null}
+          {quote.customer.phone ? (
+            <div className="text-[13.5px] text-muted-foreground">{quote.customer.phone}</div>
+          ) : null}
+          {quote.customer.email ? (
+            <div className="text-[13.5px] text-muted-foreground">{quote.customer.email}</div>
+          ) : null}
           {quote.customer.address ? (
             <div className="text-[13.5px] text-muted-foreground">{quote.customer.address}</div>
           ) : null}
         </div>
-        <div className="h-fit">
-          <StatusPill status={status} />
+        <div className="text-right text-[13px]">
+          <div className="flex justify-between gap-6">
+            <span className="text-muted-foreground">Quote No.</span>
+            <span className="font-semibold">Q-{quote.number}</span>
+          </div>
+          <div className="mt-1 flex justify-between gap-6">
+            <span className="text-muted-foreground">Issue Date</span>
+            <span className="font-semibold">{formatShortDate(quote.createdAt)}</span>
+          </div>
+          {quote.validUntil ? (
+            <div className="mt-1 flex justify-between gap-6">
+              <span className="text-muted-foreground">Valid Until</span>
+              <span className="font-semibold">{formatLongDate(quote.validUntil)}</span>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -75,10 +96,10 @@ export function QuoteDocumentCard({
             <div className="flex-1 font-semibold">{item.name}</div>
             <div className="w-15 text-center">{item.qty}</div>
             <div className="w-25 text-right text-muted-foreground">
-              {formatCurrency(item.priceCents)}
+              {formatCurrency(item.priceCents, currency)}
             </div>
             <div className="w-25 text-right font-bold">
-              {formatCurrency(item.priceCents * item.qty)}
+              {formatCurrency(item.priceCents * item.qty, currency)}
             </div>
           </div>
         ))}
@@ -88,15 +109,19 @@ export function QuoteDocumentCard({
         <div className="w-65">
           <div className="flex justify-between py-1.5 text-sm text-muted-foreground">
             <span>Subtotal</span>
-            <span>{formatCurrency(subtotalCents)}</span>
+            <span>{formatCurrency(subtotalCents, currency)}</span>
           </div>
           <div className="mt-1.5 flex justify-between border-t border-border py-2.5 font-heading text-[19px] font-extrabold">
             <span>Total</span>
-            <span>{formatCurrency(subtotalCents)}</span>
+            <span>{formatCurrency(subtotalCents, currency)}</span>
           </div>
           <div className="flex justify-between py-1.5 text-[13.5px] font-semibold" style={{ color: accent }}>
             <span>Deposit due ({quote.depositPercent}%)</span>
-            <span>{formatCurrency(depositCents)}</span>
+            <span>{formatCurrency(depositCents, currency)}</span>
+          </div>
+          <div className="flex justify-between py-1.5 text-[13.5px] text-muted-foreground">
+            <span>Balance</span>
+            <span>{formatCurrency(balanceCents, currency)}</span>
           </div>
         </div>
       </div>
@@ -135,8 +160,13 @@ export function QuoteDocumentCard({
         </div>
       ) : null}
 
-      <div className="border-t border-border pt-5 text-[12.5px] text-muted-foreground">
-        This quote is valid for 30 days.
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-5 text-[12.5px] text-muted-foreground">
+        <span>
+          {quote.validUntil
+            ? `This quotation is valid until ${formatLongDate(quote.validUntil)}.`
+            : "Thank you for your business."}
+        </span>
+        <span>Prepared by {company.name}</span>
       </div>
     </div>
   );

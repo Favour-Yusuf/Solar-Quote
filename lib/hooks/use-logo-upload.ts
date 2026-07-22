@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export function useLogoUpload(userId: string) {
+export function useLogoUpload(userId: string, filePrefix: string = "logo") {
   const [uploading, setUploading] = useState(false);
 
   async function upload(file: File): Promise<string | null> {
@@ -11,7 +11,7 @@ export function useLogoUpload(userId: string) {
     try {
       const supabase = createClient();
       const ext = file.name.split(".").pop() ?? "png";
-      const path = `${userId}/logo-${Date.now()}.${ext}`;
+      const path = `${userId}/${filePrefix}-${Date.now()}.${ext}`;
       const { error } = await supabase.storage
         .from("logos")
         .upload(path, file, { upsert: true });

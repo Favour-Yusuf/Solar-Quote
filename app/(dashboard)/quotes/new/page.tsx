@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireOnboardedCompany } from "@/lib/session";
 import { getCustomers } from "@/services/customers";
 import { getProducts } from "@/services/products";
+import { getActivePackagesForPicker } from "@/services/packages";
 import { QuoteBuilder } from "@/features/quotes/quote-builder";
 
 export const metadata: Metadata = { title: "New Quote — SolarQuote" };
@@ -14,9 +15,10 @@ export default async function NewQuotePage({
 }) {
   const { company } = await requireOnboardedCompany();
   const { customerId } = await searchParams;
-  const [customers, products] = await Promise.all([
+  const [customers, products, packages] = await Promise.all([
     getCustomers(company.id),
     getProducts(company.id),
+    getActivePackagesForPicker(company.id),
   ]);
 
   return (
@@ -28,7 +30,10 @@ export default async function NewQuotePage({
       <QuoteBuilder
         customers={customers}
         products={products}
+        packages={packages}
         initialCustomerId={customerId}
+        defaultCurrency={company.defaultCurrency}
+        defaultValidityDays={company.defaultValidityDays}
       />
     </div>
   );

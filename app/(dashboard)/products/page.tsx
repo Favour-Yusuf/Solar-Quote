@@ -14,7 +14,7 @@ export default async function ProductsPage() {
   return (
     <div className="animate-sq-fade-up">
       <PageHeader title="Product Catalogue" action={<ProductModal />} />
-      <ProductsGrid products={products} />
+      <ProductsGrid products={products} currency={company.defaultCurrency} />
     </div>
   );
 }

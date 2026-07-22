@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const [left, right] = [NAV_ITEMS.slice(0, 2), NAV_ITEMS.slice(2)];
+  const mid = Math.ceil(NAV_ITEMS.length / 2);
+  const [left, right] = [NAV_ITEMS.slice(0, mid), NAV_ITEMS.slice(mid)];
 
   return (
     <nav

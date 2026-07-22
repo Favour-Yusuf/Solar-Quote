@@ -4,8 +4,9 @@ import type { Product } from "@prisma/client";
 import { Minus, Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/utils/format";
+import { currencyMeta, DEFAULT_CURRENCY } from "@/lib/currency";
 
-export type QuoteLineItem = {
+export type LineItem = {
   productId: string;
   name: string;
   unit: string;
@@ -13,26 +14,33 @@ export type QuoteLineItem = {
   qty: number;
 };
 
-export function ProductPicker({
+export function ProductLinePicker({
+  title,
   search,
   onSearchChange,
   results,
   onAdd,
   lineItems,
   onQtyChange,
+  onPriceChange,
   onRemove,
+  currency = DEFAULT_CURRENCY,
 }: {
+  title?: string;
   search: string;
   onSearchChange: (v: string) => void;
   results: Product[];
   onAdd: (product: Product) => void;
-  lineItems: QuoteLineItem[];
+  lineItems: LineItem[];
   onQtyChange: (productId: string, qty: number) => void;
+  onPriceChange: (productId: string, priceCents: number) => void;
   onRemove: (productId: string) => void;
+  currency?: string;
 }) {
+  const currencySymbol = currencyMeta(currency).symbol;
   return (
     <div className="rounded-2xl border border-border bg-card p-[22px]">
-      <h2 className="mb-3.5 font-heading text-[15px] font-bold">2. Products</h2>
+      {title ? <h2 className="mb-3.5 font-heading text-[15px] font-bold">{title}</h2> : null}
 
       <Input
         placeholder="Search the catalogue…"
@@ -51,7 +59,7 @@ export function ProductPicker({
             <div className="flex-1">
               <div className="text-sm font-semibold">{product.name}</div>
               <div className="text-[12.5px] text-muted-foreground">
-                {formatCurrency(product.priceCents)} / {product.unit}
+                {formatCurrency(product.priceCents, currency)} / {product.unit}
               </div>
             </div>
             <div className="flex size-[26px] shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
@@ -74,8 +82,23 @@ export function ProductPicker({
             >
               <div className="flex-1">
                 <div className="text-[14.5px] font-semibold">{item.name}</div>
-                <div className="text-[12.5px] text-muted-foreground">
-                  {formatCurrency(item.priceCents)} / {item.unit}
+                <div className="flex items-center gap-1 text-[12.5px] text-muted-foreground">
+                  {currencySymbol}
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={item.priceCents / 100}
+                    onChange={(e) =>
+                      onPriceChange(
+                        item.productId,
+                        Math.max(0, Math.round(Number(e.target.value) * 100))
+                      )
+                    }
+                    aria-label={`Unit price for ${item.name}`}
+                    className="w-16 rounded-md border border-transparent bg-transparent px-1 py-0.5 hover:border-border focus:border-border focus:outline-none"
+                  />
+                  / {item.unit}
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-[10px] bg-muted p-1">
@@ -98,7 +121,7 @@ export function ProductPicker({
                 </button>
               </div>
               <div className="w-20 text-right text-[14.5px] font-bold">
-                {formatCurrency(item.priceCents * item.qty)}
+                {formatCurrency(item.priceCents * item.qty, currency)}
               </div>
               <button
                 type="button"

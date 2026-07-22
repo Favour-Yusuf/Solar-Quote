@@ -12,9 +12,17 @@ import { FieldError } from "@/components/field-error";
 import { LogoUploader } from "@/components/logo-uploader";
 import { useLogoUpload } from "@/lib/hooks/use-logo-upload";
 import { updateCompanyAction } from "@/actions/settings";
-import { companySettingsSchema, type CompanySettingsInput } from "@/lib/validations/settings";
+import {
+  companySettingsSchema,
+  VALIDITY_DAY_OPTIONS,
+  type CompanySettingsInput,
+} from "@/lib/validations/settings";
+import { CURRENCY_OPTIONS, DEFAULT_CURRENCY } from "@/lib/currency";
 
 const DEFAULT_BRAND_COLOR = "#1c8a4c";
+
+const selectClass =
+  "h-11 w-full rounded-[11px] border border-input bg-transparent px-3.5 text-[14.5px] outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export function CompanySection({ company, userId }: { company: Company; userId: string }) {
   const [logoUrl, setLogoUrl] = useState(company.logoUrl ?? undefined);
@@ -37,6 +45,8 @@ export function CompanySection({ company, userId }: { company: Company; userId: 
       bankName: company.bankName ?? "",
       accountName: company.accountName ?? "",
       accountNumber: company.accountNumber ?? "",
+      defaultCurrency: company.defaultCurrency ?? DEFAULT_CURRENCY,
+      defaultValidityDays: String(company.defaultValidityDays ?? 30),
     },
   });
   const brandColor = watch("brandColor");
@@ -136,6 +146,49 @@ export function CompanySection({ company, userId }: { company: Company; userId: 
             </button>
           ) : null}
           <FieldError message={errors.brandColor?.message} />
+        </div>
+
+        <div className="border-t border-border pt-4">
+          <h3 className="mb-3 text-[13.5px] font-bold">Quote defaults</h3>
+          <p className="-mt-2 mb-3 text-[12.5px] text-muted-foreground">
+            Pre-filled onto new quotes — you can still override them per quote.
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="defaultCurrency" className="mb-1.5 block text-[13px] font-semibold">
+                Default currency
+              </Label>
+              <select
+                id="defaultCurrency"
+                className={selectClass}
+                {...register("defaultCurrency")}
+              >
+                {CURRENCY_OPTIONS.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label} ({c.symbol})
+                  </option>
+                ))}
+              </select>
+              <FieldError message={errors.defaultCurrency?.message} />
+            </div>
+            <div>
+              <Label htmlFor="defaultValidityDays" className="mb-1.5 block text-[13px] font-semibold">
+                Default validity
+              </Label>
+              <select
+                id="defaultValidityDays"
+                className={selectClass}
+                {...register("defaultValidityDays")}
+              >
+                {VALIDITY_DAY_OPTIONS.map((days) => (
+                  <option key={days} value={days}>
+                    {days} days
+                  </option>
+                ))}
+              </select>
+              <FieldError message={errors.defaultValidityDays?.message} />
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-border pt-4">

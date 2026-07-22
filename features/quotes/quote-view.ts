@@ -7,6 +7,7 @@ type QuoteWithRelations = {
   number: number;
   status: QuoteStatus;
   createdAt: Date;
+  currency: string;
   items: { priceCents: number; qty: number }[];
   customer: { name: string; businessName: string | null };
 };
@@ -19,7 +20,7 @@ export function toQuoteListItem(quote: QuoteWithRelations) {
     customerSubtitle: quote.customer.businessName ?? "",
     initials: getInitials(quote.customer.name),
     dateLabel: formatShortDate(quote.createdAt),
-    totalLabel: formatCurrency(quoteTotalCents(quote)),
+    totalLabel: formatCurrency(quoteTotalCents(quote), quote.currency),
     status: quote.status,
   };
 }

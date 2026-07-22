@@ -1,3 +1,4 @@
+import { addDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
 import type { QuoteStatus } from "@prisma/client";
 import { quoteTotalCents } from "@/utils/quote-math";
@@ -54,8 +55,11 @@ export async function createQuote(input: {
   companyId: string;
   customerId: string;
   depositPercent: number;
+  currency?: string;
+  validUntil?: Date;
   notes?: string;
-  items: { productId: string; qty: number }[];
+  sourcePackageId?: string;
+  items: { productId: string; qty: number; priceCentsOverride?: number }[];
 }) {
   return prisma.$transaction(async (tx) => {
     // Atomic per-company counter: increment returns the post-increment
@@ -65,6 +69,11 @@ export async function createQuote(input: {
       data: { quoteSequence: { increment: 1 } },
     });
     const number = company.quoteSequence - 1;
+
+    // Fall back to the company defaults when the builder didn't send them, so
+    // the quote is always denominated and dated even for older clients.
+    const currency = input.currency ?? company.defaultCurrency;
+    const validUntil = input.validUntil ?? addDays(new Date(), company.defaultValidityDays);
 
     // Never trust client-supplied prices — snapshot from the authoritative
     // product row at creation time.
@@ -84,7 +93,7 @@ export async function createQuote(input: {
           productId: product.id,
           name: product.name,
           unit: product.unit,
-          priceCents: product.priceCents,
+          priceCents: item.priceCentsOverride ?? product.priceCents,
           qty: item.qty,
         },
       ];
@@ -96,7 +105,10 @@ export async function createQuote(input: {
         customerId: input.customerId,
         number,
         depositPercent: input.depositPercent,
+        currency,
+        validUntil,
         notes: input.notes || null,
+        sourcePackageId: input.sourcePackageId || null,
         items: { create: items },
       },
       include: { items: true, customer: true },

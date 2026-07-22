@@ -2,9 +2,16 @@ import type { Product } from "@prisma/client";
 import { Package } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { formatCurrency } from "@/utils/format";
+import { DEFAULT_CURRENCY } from "@/lib/currency";
 import { ProductModal } from "@/features/products/product-modal";
 
-export function ProductsGrid({ products }: { products: Product[] }) {
+export function ProductsGrid({
+  products,
+  currency = DEFAULT_CURRENCY,
+}: {
+  products: Product[];
+  currency?: string;
+}) {
   if (products.length === 0) {
     return (
       <EmptyState
@@ -35,7 +42,7 @@ export function ProductsGrid({ products }: { products: Product[] }) {
           <div className="text-[13px] text-muted-foreground">per {product.unit}</div>
           <div className="mt-auto flex items-center justify-between border-t border-border pt-2.5">
             <div className="font-heading text-[17px] font-extrabold">
-              {formatCurrency(product.priceCents)}
+              {formatCurrency(product.priceCents, currency)}
             </div>
             <ProductModal product={product} />
           </div>
