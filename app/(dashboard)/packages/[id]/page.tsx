@@ -6,7 +6,7 @@ import { getPackageById } from "@/services/packages";
 import { getProducts } from "@/services/products";
 import { PackageBuilder } from "@/features/packages/package-builder";
 
-export const metadata: Metadata = { title: "Edit Package — SolarQuote" };
+export const metadata: Metadata = { title: "Edit Package" };
 
 export default async function EditPackagePage({
   params,

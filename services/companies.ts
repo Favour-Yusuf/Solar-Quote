@@ -57,6 +57,17 @@ export async function completeOnboarding(
   return company;
 }
 
+/**
+ * Persists just the logo, so an upload sticks the moment it finishes rather
+ * than waiting for the installer to submit the rest of the company form.
+ */
+export function updateCompanyLogo(ownerId: string, logoUrl: string | null) {
+  return prisma.company.update({
+    where: { ownerId },
+    data: { logoUrl },
+  });
+}
+
 export function updateCompany(
   ownerId: string,
   input: {

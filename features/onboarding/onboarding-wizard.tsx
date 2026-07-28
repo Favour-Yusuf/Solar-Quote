@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { completeOnboardingAction } from "@/actions/onboarding";
 import { useLogoUpload } from "@/lib/hooks/use-logo-upload";
 import { OnboardingShell } from "@/features/onboarding/onboarding-shell";
@@ -45,8 +46,13 @@ export function OnboardingWizard({
   }
 
   async function handleLogoSelect(file: File) {
-    const url = await uploadLogo(file);
-    if (url) setLogoUrl(url);
+    const result = await uploadLogo(file, logoUrl);
+    if ("error" in result) {
+      toast.error(result.error);
+      return;
+    }
+    setLogoUrl(result.url);
+    toast.success("Logo uploaded.");
   }
 
   async function finish() {
@@ -89,6 +95,7 @@ export function OnboardingWizard({
           logoUrl={logoUrl}
           logoUploading={logoUploading}
           onLogoSelect={handleLogoSelect}
+          onLogoRemove={() => setLogoUrl(undefined)}
           brandColor={brandColor}
           onBrandColorChange={setBrandColor}
           onBack={() => setStep(1)}

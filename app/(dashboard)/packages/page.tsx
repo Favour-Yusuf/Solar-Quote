@@ -7,7 +7,7 @@ import { requireOnboardedCompany } from "@/lib/session";
 import { getPackages } from "@/services/packages";
 import { PackagesGrid } from "@/features/packages/packages-grid";
 
-export const metadata: Metadata = { title: "Packages — SolarQuote" };
+export const metadata: Metadata = { title: "Packages" };
 
 export default async function PackagesPage() {
   const { company } = await requireOnboardedCompany();

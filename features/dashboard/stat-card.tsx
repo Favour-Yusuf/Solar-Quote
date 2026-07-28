@@ -14,7 +14,7 @@ export function StatCard({
       className={cn(
         "rounded-2xl border border-border p-[22px] shadow-[0_1px_2px_oklch(20%_0.02_90_/_0.03)]",
         emphasis === "revenue"
-          ? "border-transparent bg-primary shadow-[0_6px_20px_oklch(52%_0.14_152_/_0.18)]"
+          ? "border-transparent bg-primary shadow-[0_6px_20px_var(--brand-shadow)]"
           : "bg-card"
       )}
     >

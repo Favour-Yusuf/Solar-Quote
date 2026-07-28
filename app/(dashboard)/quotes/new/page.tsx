@@ -6,7 +6,7 @@ import { getProducts } from "@/services/products";
 import { getActivePackagesForPicker } from "@/services/packages";
 import { QuoteBuilder } from "@/features/quotes/quote-builder";
 
-export const metadata: Metadata = { title: "New Quote — SolarQuote" };
+export const metadata: Metadata = { title: "New Quote" };
 
 export default async function NewQuotePage({
   searchParams,

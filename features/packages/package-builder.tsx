@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import type { Product } from "@prisma/client";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
@@ -58,8 +59,13 @@ export function PackageBuilder({
   }, [products, productSearch]);
 
   async function handleCoverSelect(file: File) {
-    const url = await upload(file);
-    if (url) setCoverImageUrl(url);
+    const result = await upload(file, coverImageUrl);
+    if ("error" in result) {
+      toast.error(result.error);
+      return;
+    }
+    setCoverImageUrl(result.url);
+    toast.success("Cover image updated.");
   }
 
   function addProduct(product: Product) {
@@ -139,10 +145,11 @@ export function PackageBuilder({
               logoUrl={coverImageUrl}
               uploading={uploading}
               onSelect={handleCoverSelect}
+              onRemove={() => setCoverImageUrl(undefined)}
               ariaLabel="Upload cover image"
               alt="Package cover"
               placeholder="cover"
-              hint="Cover image (optional) — PNG or JPG."
+              hint="Cover image (optional) — PNG or JPG, up to 2MB."
             />
           </div>
           <div className="flex flex-col gap-3">

@@ -5,7 +5,7 @@ import { getCustomersWithQuoteCounts } from "@/services/customers";
 import { CustomersGrid } from "@/features/customers/customers-grid";
 import { AddCustomerModal } from "@/features/customers/add-customer-modal";
 
-export const metadata: Metadata = { title: "Customers — SolarQuote" };
+export const metadata: Metadata = { title: "Customers" };
 
 export default async function CustomersPage() {
   const { company } = await requireOnboardedCompany();

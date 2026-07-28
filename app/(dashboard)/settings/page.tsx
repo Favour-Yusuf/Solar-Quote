@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/page-header";
 import { requireOnboardedCompany } from "@/lib/session";
 import { SettingsView } from "@/features/settings/settings-view";
 
-export const metadata: Metadata = { title: "Settings — SolarQuote" };
+export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
   const { user, dbUser, company } = await requireOnboardedCompany();

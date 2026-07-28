@@ -5,7 +5,7 @@ import { getProducts } from "@/services/products";
 import { ProductsGrid } from "@/features/products/products-grid";
 import { ProductModal } from "@/features/products/product-modal";
 
-export const metadata: Metadata = { title: "Products — SolarQuote" };
+export const metadata: Metadata = { title: "Products" };
 
 export default async function ProductsPage() {
   const { company } = await requireOnboardedCompany();

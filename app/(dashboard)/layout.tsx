@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { requireOnboardedCompany } from "@/lib/session";
@@ -6,6 +7,21 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { BottomNav } from "@/components/bottom-nav";
 import { CompanyLogo } from "@/components/company-logo";
 import { UserMenu } from "@/components/user-menu";
+import { brandThemeVars } from "@/lib/branding";
+
+/**
+ * Titles every authenticated tab "<Page> — <Company>", so even the browser
+ * chrome reads as the installer's own software rather than SolarQuote's.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const { company } = await requireOnboardedCompany();
+  return {
+    title: {
+      default: company.name,
+      template: `%s — ${company.name}`,
+    },
+  };
+}
 
 export default async function DashboardLayout({
   children,
@@ -15,15 +31,24 @@ export default async function DashboardLayout({
   const { dbUser, company } = await requireOnboardedCompany();
 
   return (
-    <div className="flex min-h-screen bg-background">
+    // The company's brand colour is injected here as design-system tokens, so
+    // every `primary`/`accent`/`ring` utility rendered below re-themes with it.
+    <div className="flex min-h-screen bg-background" style={brandThemeVars(company.brandColor)}>
       <AppSidebar
         userName={dbUser?.fullName ?? "Solar Installer"}
         companyName={company.name}
+        companyLogoUrl={company.logoUrl}
+        brandColor={company.brandColor}
       />
       <div className="min-w-0 flex-1">
         <header className="flex items-center justify-between border-b border-border bg-card px-5 py-3 min-[901px]:hidden">
           <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0">
-            <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={30} />
+            <CompanyLogo
+              logoUrl={company.logoUrl}
+              name={company.name}
+              brandColor={company.brandColor}
+              size={30}
+            />
             <span className="truncate font-heading text-[14.5px] font-bold">{company.name}</span>
           </Link>
           <UserMenu side="bottom" align="end">

@@ -8,7 +8,7 @@ import { getAllQuotes } from "@/services/quotes";
 import { toQuoteListItem } from "@/features/quotes/quote-view";
 import { QuotesTable } from "@/features/quotes/quotes-table";
 
-export const metadata: Metadata = { title: "Quotes — SolarQuote" };
+export const metadata: Metadata = { title: "Quotes" };
 
 export default async function QuotesPage() {
   const { company } = await requireOnboardedCompany();

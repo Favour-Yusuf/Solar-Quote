@@ -74,6 +74,8 @@
   --border: oklch(91% 0.012 95);
   --input: oklch(91% 0.012 95);
   --ring: oklch(52% 0.14 152 / 0.5);
+  /* Glow under primary CTAs. Overridden per-company by brandThemeVars(). */
+  --brand-shadow: oklch(52% 0.14 152 / 0.22);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);

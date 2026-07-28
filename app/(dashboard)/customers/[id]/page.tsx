@@ -4,7 +4,7 @@ import { requireOnboardedCompany } from "@/lib/session";
 import { getCustomerById, getCustomerQuotes } from "@/services/customers";
 import { CustomerDetail } from "@/features/customers/customer-detail";
 
-export const metadata: Metadata = { title: "Customer — SolarQuote" };
+export const metadata: Metadata = { title: "Customer" };
 
 export default async function CustomerDetailPage({
   params,

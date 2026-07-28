@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/logo";
+import { CompanyLogo } from "@/components/company-logo";
 import { NAV_ITEMS } from "@/components/nav-items";
 import { UserMenu } from "@/components/user-menu";
 import { cn } from "@/lib/utils";
@@ -13,24 +13,37 @@ import { getInitials } from "@/utils/format";
 export function AppSidebar({
   userName,
   companyName,
+  companyLogoUrl,
+  brandColor,
 }: {
   userName: string;
   companyName: string;
+  companyLogoUrl?: string | null;
+  brandColor?: string | null;
 }) {
   const pathname = usePathname();
 
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col gap-0.5 border-r border-border bg-card px-4 py-7 min-[901px]:flex">
-      <Link href="/dashboard" className="mb-7 flex items-center gap-2.5 px-2.5">
-        <Logo size={34} />
-        <span className="font-heading text-lg font-extrabold tracking-tight">
-          SolarQuote
+      <Link
+        href="/dashboard"
+        className="mb-7 flex min-w-0 items-center gap-2.5 px-2.5"
+        title={companyName}
+      >
+        <CompanyLogo
+          logoUrl={companyLogoUrl}
+          name={companyName}
+          brandColor={brandColor}
+          size={34}
+        />
+        <span className="truncate font-heading text-[17px] font-extrabold tracking-tight">
+          {companyName}
         </span>
       </Link>
 
       <Button
         render={<Link href="/quotes/new" />}
-        className="mb-5 h-auto justify-center gap-2 rounded-xl py-3 font-heading text-[14.5px] font-bold shadow-[0_1px_2px_rgba(0,0,0,0.06),0_6px_16px_oklch(52%_0.14_152_/_0.22)]"
+        className="mb-5 h-auto justify-center gap-2 rounded-xl py-3 font-heading text-[14.5px] font-bold shadow-[0_1px_2px_rgba(0,0,0,0.06),0_6px_16px_var(--brand-shadow)]"
       >
         <Plus className="size-4" strokeWidth={2.4} />
         New Quote

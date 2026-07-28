@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LogoUploader } from "@/components/logo-uploader";
 import { OnboardingCard } from "@/features/onboarding/onboarding-shell";
-
-const DEFAULT_BRAND_COLOR = "#1c8a4c";
+import { DEFAULT_BRAND_COLOR } from "@/lib/branding";
 
 export function CompanyStep({
   companyName,
@@ -21,6 +20,7 @@ export function CompanyStep({
   logoUrl,
   logoUploading,
   onLogoSelect,
+  onLogoRemove,
   brandColor,
   onBrandColorChange,
   onBack,
@@ -39,6 +39,7 @@ export function CompanyStep({
   logoUrl?: string;
   logoUploading: boolean;
   onLogoSelect: (file: File) => void;
+  onLogoRemove: () => void;
   brandColor: string;
   onBrandColorChange: (v: string) => void;
   onBack: () => void;
@@ -54,7 +55,12 @@ export function CompanyStep({
       </p>
 
       <div className="mb-4">
-        <LogoUploader logoUrl={logoUrl} uploading={logoUploading} onSelect={onLogoSelect} />
+        <LogoUploader
+          logoUrl={logoUrl}
+          uploading={logoUploading}
+          onSelect={onLogoSelect}
+          onRemove={onLogoRemove}
+        />
       </div>
 
       <div className="flex flex-col gap-3">

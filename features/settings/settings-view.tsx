@@ -28,7 +28,7 @@ export function SettingsView({
       <section className="rounded-2xl border border-border bg-card p-[22px]">
         <h2 className="mb-1 font-heading text-[17px] font-bold">Session</h2>
         <p className="mb-4 text-[13.5px] text-muted-foreground">
-          Sign out of SolarQuote on this device.
+          Sign out of your account on this device.
         </p>
         <Button
           variant="outline"

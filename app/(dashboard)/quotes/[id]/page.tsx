@@ -4,7 +4,7 @@ import { requireOnboardedCompany } from "@/lib/session";
 import { getQuoteById } from "@/services/quotes";
 import { QuotePreview } from "@/features/quotes/quote-preview";
 
-export const metadata: Metadata = { title: "Quote — SolarQuote" };
+export const metadata: Metadata = { title: "Quote" };
 
 export default async function QuoteDetailPage({
   params,

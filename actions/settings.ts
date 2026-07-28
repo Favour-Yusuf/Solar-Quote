@@ -8,9 +8,38 @@ import {
   changePasswordSchema,
   companySettingsSchema,
 } from "@/lib/validations/settings";
-import { updateCompany } from "@/services/companies";
+import { updateCompany, updateCompanyLogo } from "@/services/companies";
 import { updateUserProfile } from "@/services/users";
+import { logoPathFromPublicUrl } from "@/lib/supabase/storage";
 import type { ActionResult } from "@/actions/auth";
+
+/**
+ * Saves a freshly uploaded logo on its own. Revalidates the whole dashboard
+ * layout, not just this page, so the sidebar and mobile header pick up the new
+ * brand immediately.
+ *
+ * Accepts only a public URL from this installer's own `logos/<uid>/` folder —
+ * the column is rendered through next/image on customer-facing pages, so it
+ * must never become a sink for arbitrary third-party URLs.
+ */
+export async function updateCompanyLogoAction(logoUrl: unknown): Promise<ActionResult> {
+  const { user } = await requireOnboardedCompany();
+
+  if (logoUrl !== null && typeof logoUrl !== "string") {
+    return { error: "That logo couldn't be saved." };
+  }
+
+  if (logoUrl) {
+    const path = logoPathFromPublicUrl(logoUrl);
+    if (!path || !path.startsWith(`${user.id}/`)) {
+      return { error: "That logo couldn't be saved." };
+    }
+  }
+
+  await updateCompanyLogo(user.id, logoUrl || null);
+  revalidatePath("/", "layout");
+  return { success: true };
+}
 
 export async function updateCompanyAction(input: unknown): Promise<ActionResult> {
   const { user } = await requireOnboardedCompany();
@@ -24,8 +53,9 @@ export async function updateCompanyAction(input: unknown): Promise<ActionResult>
     ...parsed.data,
     defaultValidityDays: Number(parsed.data.defaultValidityDays),
   });
-  revalidatePath("/settings");
-  revalidatePath("/dashboard");
+  // Layout-wide: company name, logo and brand colour drive the sidebar and
+  // header on every authenticated page, not just /settings.
+  revalidatePath("/", "layout");
   return { success: true };
 }
 
